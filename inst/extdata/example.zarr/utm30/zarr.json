@@ -1,0 +1,25 @@
+{
+  "attributes": {
+    "spatial:dimensions": [
+      "y",
+      "x"
+    ],
+    "spatial:transform_type": "affine",
+    "spatial:transform": [
+      10.0,
+      0.0,
+      703450.0,
+      0.0,
+      -10.0,
+      5766570.0
+    ],
+    "spatial:shape": [
+      256,
+      256
+    ],
+    "spatial:registration": "pixel",
+    "proj:code": "EPSG:32630"
+  },
+  "zarr_format": 3,
+  "node_type": "group"
+}

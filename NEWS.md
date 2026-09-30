@@ -1,0 +1,15 @@
+# geotessera 0.1.0
+
+* Initial release. Reads Tessera embeddings from local and remote Zarr v3
+  stores, a port of the `GeoTesseraZarr` reader of the Python `geotessera`
+  package.
+* The default store is the v1.1 global dClimate run. `tessera_datasets()`
+  lists the published datasets and `tessera_store_url()` selects one by
+  version and variant.
+* Exports of a published dataset record it in GeoTIFF tags and a
+  `tessera_metadata.json` file, and refuse directories holding another
+  dataset.
+* `cache_dir` keeps downloaded chunks on disk as well as store metadata,
+  bounded by the `geotessera.disk_cache_bytes` option.
+* Reads warn when a hemisphere of a zone has no complete embeddings for
+  the requested year.

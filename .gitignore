@@ -1,0 +1,7 @@
+.Rproj.user
+.Rhistory
+*.tar.gz
+geotessera.Rcheck/
+tests/testthat/fixtures/unused/
+inst/doc
+docs

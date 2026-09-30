@@ -1,0 +1,37 @@
+Package: geotessera
+Title: Read 'Tessera' Embeddings from 'Zarr' Stores
+Version: 0.1.0
+Authors@R: c(
+    person("Anil", "Madhavapeddy", , "anil@recoil.org", role = c("aut", "cre"))
+  )
+Description: Reads embeddings of the 'Tessera' Earth observation
+    foundation model from local or remote 'Zarr' v3 stores. Samples points, reads
+    regions and fixed-size patches on native UTM grids, and exports GeoTIFF
+    files.
+License: MIT + file LICENSE
+URL: https://github.com/ucam-eo/geotessera-r, https://geotessera.org
+BugReports: https://github.com/ucam-eo/geotessera-r/issues
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Depends:
+    R (>= 4.2)
+Imports:
+    cachem (>= 1.0.0),
+    curl,
+    digest,
+    httr2 (>= 1.1.0),
+    jsonlite,
+    R6,
+    stats,
+    terra (>= 1.7-0),
+    utils,
+    zarr (>= 0.5.1)
+Suggests:
+    knitr,
+    rmarkdown,
+    sf,
+    testthat (>= 3.0.0),
+    withr (>= 2.5.0)
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Config/roxygen2/version: 8.1.0

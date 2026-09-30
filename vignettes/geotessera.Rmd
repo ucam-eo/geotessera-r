@@ -1,0 +1,149 @@
+---
+title: "Getting started with geotessera"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Getting started with geotessera}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+[Tessera](https://github.com/ucam-eo/tessera) summarises a year of
+Sentinel-1 and Sentinel-2 observations as an embedding at each 10 m pixel.
+geotessera reads those embeddings from Zarr stores into ordinary R objects:
+columns added to your points, and `terra` rasters for regions and patches.
+
+This vignette uses the small synthetic store shipped with the package, so it
+runs offline. Its values are not real embeddings. Replace
+`tessera_example()` with `tessera_store_url()`, or open the default store
+with `tessera_open()`, to read the public data.
+
+```{r}
+library(geotessera)
+
+gt <- tessera_open(tessera_example())
+gt
+```
+
+The public stores are opened the same way. Each published dataset is one
+inference run, a model version and a variant, and embeddings of different
+datasets are unrelated, so use one dataset per analysis:
+
+```{r}
+tessera_datasets()[c("version", "variant", "default")]
+```
+
+`tessera_open()` with no arguments opens the default v1.1 store. Give
+`cache_dir` to keep store metadata and downloaded chunks on disk between
+sessions:
+
+```{r, eval = FALSE}
+gt <- tessera_open(
+  tessera_store_url("v1.1"),
+  cache_dir = tools::R_user_dir("geotessera", "cache")
+)
+```
+
+## Sampling points
+
+`tessera_sample()` adds one column per band to your points. Points can be
+a data frame of WGS84 longitudes and latitudes, or an `sf` or `terra` point
+layer in any CRS, which keeps its class.
+
+```{r}
+pts <- data.frame(
+  site = c("field", "lake", "far away"),
+  lon = c(0.0085, 0.0069, 10),
+  lat = c(52.0045, 52.0072, 52)
+)
+tessera_sample(gt, pts, year = 2024)
+```
+
+Points without an embedding are `NA`. `tessera_probe()` adds a `status`
+column saying why:
+
+```{r}
+tessera_probe(gt, pts, year = 2024)[c("site", "status")]
+```
+
+For modelling, take the band columns as a matrix:
+
+```{r}
+emb <- tessera_sample(gt, pts, year = 2024)
+X <- as.matrix(emb[grep("^band_", names(emb))])
+dim(X)
+```
+
+## Reading a region
+
+`tessera_region()` returns a `SpatRaster` with one layer per band, on the
+native UTM grid of the zone holding the centre of the bounds. Bounds are
+`c(west, south, east, north)` in degrees, or any `sf` or `terra` object.
+
+```{r, fig.width = 5, fig.height = 3}
+bbox <- c(0.004, 52.005, 0.013, 52.009)
+r <- tessera_region(gt, bbox, year = 2024, bands = 1:3)
+r
+terra::plotRGB(terra::stretch(r))
+```
+
+For regions too large for memory, `tessera_map_region()` applies a
+function to row strips of the region:
+
+Bounds given in the zone's CRS are used exactly, so an earlier result
+selects the same grid in another year. Prefer this to reprojecting
+embeddings, and bring other data to the embeddings' grid instead:
+
+```{r}
+r2023 <- tessera_region(gt, r, year = 2023, bands = 1:3)
+terra::compareGeom(r, r2023)
+```
+
+```{r}
+means <- tessera_map_region(gt, bbox, 2024, terra::global, "mean",
+                            na.rm = TRUE, strip_rows = 16)
+means[[1]][1:3, , drop = FALSE]
+```
+
+## Patches across zone boundaries
+
+`tessera_patch()` reads a square of pixels centred on a point, such as an
+input tile for a model. The patch lies on the native grid of the point's
+UTM zone. Where it crosses into a neighbouring zone, only the pixels beyond
+the seam are resampled, by nearest neighbour:
+
+```{r}
+p <- tessera_patch(gt, c(0, 52), year = 2024, size_px = 24)
+dim(p)
+terra::crs(p, describe = TRUE)$code
+```
+
+## Exporting GeoTIFFs
+
+`tessera_export_geotiffs()` writes one float32 GeoTIFF per intersecting UTM
+zone. Use `dry_run = TRUE` to see the size first:
+
+```{r}
+out <- file.path(tempdir(), "tessera")
+bbox <- c(-0.0067, 52.0018, 0.0087, 52.0036)
+tessera_export_geotiffs(gt, bbox, 2024, out, dry_run = TRUE)
+files <- tessera_export_geotiffs(gt, bbox, 2024, out)
+basename(files)
+```
+
+```{r, include = FALSE}
+unlink(out, recursive = TRUE)
+```
+
+## Embedding depths
+
+v2 stores also publish shorter prefixes of each embedding. Choose one with
+`depth`:
+
+```{r}
+names(gt$depths)
+tessera_sample(gt, pts[1, ], 2024, depth = 2)
+```

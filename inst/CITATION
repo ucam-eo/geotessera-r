@@ -1,0 +1,19 @@
+bibentry(
+  bibtype = "Misc",
+  title = "{TESSERA}: Temporal Embeddings of Surface Spectra for Earth Representation and Analysis",
+  author = c(
+    person("Zhengpeng", "Feng"), person("Clement", "Atzberger"),
+    person("Sadiq", "Jaffer"), person("Jovana", "Knezevic"),
+    person("Silja", "Sormunen"), person("Robin", "Young"),
+    person("Madeline C.", "Lisaius"), person("Markus", "Immitzer"),
+    person("David A.", "Coomes"), person("Anil", "Madhavapeddy"),
+    person("Andrew", "Blake"), person("Srinivasan", "Keshav")
+  ),
+  year = "2025",
+  eprint = "2506.20380",
+  archivePrefix = "arXiv",
+  primaryClass = "cs.LG",
+  doi = "10.48550/arXiv.2506.20380",
+  url = "https://arxiv.org/abs/2506.20380",
+  header = "To cite the Tessera model in publications, please use:"
+)
