@@ -460,3 +460,19 @@ test_that("batches run on mirai daemons", {
   withr::local_options(geotessera.cache_bytes = "bad")
   expect_error(tessera_sample(fresh, golden_points(g), 2024), "max_size must be a number")
 })
+
+test_that("a daemon keeps one store per location", {
+  skip_on_cran()
+  skip_if_not_installed("mirai")
+  skip_if_not(testthat::is_checking(), "the installed package may be stale")
+  withr::local_options(geotessera.batch_points = 3L)
+  mirai::daemons(1)
+  withr::defer(mirai::daemons(0))
+  gt <- fixture_store()
+  pts <- golden_points(golden())
+  for (bytes in c(1e6, 2e6)) {
+    withr::with_options(list(geotessera.cache_bytes = bytes), tessera_sample(gt, pts, 2024))
+  }
+  stores <- mirai::mirai(length(ls(asNamespace("geotessera")$worker_stores)))[]
+  expect_identical(stores, 1L)
+})

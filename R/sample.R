@@ -156,19 +156,20 @@ package_options <- function() {
   opts[startsWith(names(opts), "geotessera.")]
 }
 
-# probe_batch() on a mirai daemon, which opens the store once and reuses it
-# for later batches, under the caller's options.
+# probe_batch() on a mirai daemon, under the caller's options. A daemon keeps
+# one open store per location and cache directory, reopened when the options
+# change.
 probe_batch_worker <- function(part, url, cache_dir, crs, year, array,
                                cross_zone, search_px, opts) {
   old <- options(opts)
   on.exit(options(old), add = TRUE)
-  key <- digest::digest(list(url, cache_dir, opts))
-  gt <- worker_stores[[key]]
-  if (is.null(gt)) {
-    gt <- tessera_open(url, cache_dir)
-    assign(key, gt, envir = worker_stores)
+  key <- paste(url, cache_dir %||% "", sep = "\n")
+  slot <- worker_stores[[key]]
+  if (is.null(slot) || !identical(slot$opts, opts)) {
+    slot <- list(gt = tessera_open(url, cache_dir), opts = opts)
+    assign(key, slot, envir = worker_stores)
   }
-  probe_batch(gt, part, crs, year, array, cross_zone, search_px)
+  probe_batch(slot$gt, part, crs, year, array, cross_zone, search_px)
 }
 
 worker_stores <- new.env(parent = emptyenv())
