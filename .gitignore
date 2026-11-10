@@ -5,3 +5,4 @@ geotessera.Rcheck/
 tests/testthat/fixtures/unused/
 inst/doc
 docs
+.scratch/
