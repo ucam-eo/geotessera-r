@@ -1,7 +1,11 @@
-# geotessera (development version)
+# geotessera 0.2.0
 
-* Requires zarr 1.0.0 or later, and so R 4.4 or later. `tessera_open()`
-  failed with zarr 1.0 (#1).
+* Requires zarr 1.0.0+ and R 4.4+. `tessera_open()` failed with zarr 1.0 (#1).
+* Sampling many points is faster as planning byte ranges no longer takes
+  time quadratic in the number of chunks (reported by Jayden Engbert). 
+* `tessera_sample()` and `tessera_probe()` read points in batches of nearby
+  points (`geotessera.batch_points`, default 10000).
+  Batches run in parallel when mirai daemons are set with `mirai::daemons()`.
 
 # geotessera 0.1.0
 

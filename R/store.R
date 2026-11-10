@@ -156,6 +156,7 @@ tessera_open <- function(store = tessera_store_url(),
 
   gt <- new.env(parent = emptyenv())
   gt$url <- url
+  gt$cache_dir <- cache_dir
   gt$dataset <- dataset_for_location(url)
   gt$store <- zstore
   gt$consolidated <- consolidated

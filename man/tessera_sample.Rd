@@ -72,6 +72,15 @@ without interpolation. Near a zone seam, a point without an embedding is
 also looked up in the neighbouring zone. Points are projected directly
 from their own CRS to the zone's, and points already in the zone's CRS
 are used as given.
+
+Points are read in batches of nearby points, of at most the option
+\code{geotessera.batch_points} (default 10000), which bounds memory use. With
+\href{https://mirai.r-lib.org}{mirai} daemons set by \code{\link[mirai:daemons]{mirai::daemons()}}, batches
+are read in parallel; each daemon opens the store itself and needs
+geotessera installed. Most of the time goes to downloading, about 110 KB
+for each point far from others, so a few daemons usually saturate the
+connection. Give \code{\link[=tessera_open]{tessera_open()}} a \code{cache_dir} so that daemons share
+downloads.
 }
 \examples{
 gt <- tessera_open(tessera_example())

@@ -28,6 +28,7 @@ Imports:
     zarr (>= 1.0.0)
 Suggests:
     knitr,
+    mirai (>= 2.3.0),
     rmarkdown,
     sf,
     testthat (>= 3.0.0),

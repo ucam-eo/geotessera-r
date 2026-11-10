@@ -84,6 +84,32 @@ for an unwritten pixel, or `outside` beyond coverage.
 table(tessera_probe(gt, pts, 2024)$status)
 ```
 
+### Many points
+
+Embeddings are stored in chunks of 32 by 32 pixels and every band, about
+110 KB each, and a point is read by downloading its whole chunk. Points
+within a few hundred metres of each other share chunks; a million scattered
+points download on the order of 100 GB, so large jobs are bound by
+bandwidth rather than CPU.
+
+Points are read in batches of nearby points, which bounds memory use. With
+[mirai](https://mirai.r-lib.org) daemons set, batches are read in parallel:
+
+```r
+mirai::daemons(4)
+gt <- tessera_open(cache_dir = tools::R_user_dir("geotessera", "cache"))
+res <- tessera_sample(gt, pts, 2024)
+mirai::daemons(0)
+```
+
+Each daemon opens the store itself and needs geotessera installed. A few
+daemons usually saturate the connection. Give `tessera_open()` a
+`cache_dir` so that daemons and later runs share downloads, and raise
+`geotessera.disk_cache_bytes` above the size of the job. Where points are
+dense, reading the area with `tessera_region()` and extracting with
+`terra::extract()` can download less. Running close to the store, on a
+cloud machine near its storage, helps more than more daemons.
+
 ## Read a region
 
 ```r
@@ -166,6 +192,8 @@ x16 <- tessera_sample(gt2, pts, 2024, depth = 16)
 `tessera_open()`, and `geotessera.disk_cache_bytes` bounds each store's
 chunks there (default 10 GiB). `geotessera.cache_bytes` bounds the in-memory cache of shard
 indices and compressed chunks (default 256 MiB).
+`geotessera.batch_points` sets the largest batch of points read at once
+(default 10000).
 
 ## Tests
 

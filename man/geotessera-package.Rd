@@ -45,6 +45,10 @@ request, with exponential backoff. The default is 5.}
 \item{\code{geotessera.cache_bytes}}{Size bound in bytes of the in-memory
 cache of shard indices and compressed chunks, set when a store is
 opened. The default is 256 MiB.}
+\item{\code{geotessera.batch_points}}{Maximum points that
+\code{\link[=tessera_sample]{tessera_sample()}} and \code{\link[=tessera_probe]{tessera_probe()}} read at once, bounding
+memory use; batches run in parallel on \href{https://mirai.r-lib.org}{mirai}
+daemons when set. The default is 10000.}
 }
 }
 

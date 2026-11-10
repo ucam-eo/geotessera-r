@@ -10,6 +10,15 @@
 #' from their own CRS to the zone's, and points already in the zone's CRS
 #' are used as given.
 #'
+#' Points are read in batches of nearby points, of at most the option
+#' `geotessera.batch_points` (default 10000), which bounds memory use. With
+#' [mirai](https://mirai.r-lib.org) daemons set by [mirai::daemons()], batches
+#' are read in parallel; each daemon opens the store itself and needs
+#' geotessera installed. Most of the time goes to downloading, about 110 KB
+#' for each point far from others, so a few daemons usually saturate the
+#' connection. Give [tessera_open()] a `cache_dir` so that daemons share
+#' downloads.
+#'
 #' @param x A store from [tessera_open()].
 #' @param points The points to sample: a data frame with `lon` and `lat`
 #'   (or `longitude` and `latitude`, or `x` and `y`) columns of WGS84
@@ -78,11 +87,75 @@ probe_points <- function(x, points, year, depth, bands, cross_zone, search_px) {
   }
   search_px <- check_count(search_px, "search_px", zero = TRUE)
   pts <- as_points(points)
-  lon <- pts$lonlat[, 1L]
-  lat <- pts$lonlat[, 2L]
-  n <- length(lon)
+  n <- nrow(pts$xy)
   values <- matrix(NA_real_, n, array$bands,
                    dimnames = list(NULL, paste0("band_", seq_len(array$bands))))
+  status <- rep(OUTSIDE, n)
+
+  batches <- point_batches(pts$lonlat, getOption("geotessera.batch_points", 10000L))
+  parts <- lapply(batches, function(i) {
+    list(xy = pts$xy[i, , drop = FALSE], lonlat = pts$lonlat[i, , drop = FALSE])
+  })
+  results <- if (length(parts) > 1L && use_mirai()) {
+    m <- mirai::mirai_map(parts, probe_batch_worker, .args = list(
+      url = x$url, cache_dir = x$cache_dir, crs = pts$crs, year = year,
+      array = array, cross_zone = cross_zone, search_px = search_px
+    ))
+    if (interactive()) m[mirai::.progress, mirai::.stop] else m[mirai::.stop]
+  } else {
+    lapply(parts, function(p) {
+      probe_batch(x, p, pts$crs, year, array, cross_zone, search_px)
+    })
+  }
+  for (b in seq_along(batches)) {
+    values[batches[[b]], ] <- results[[b]]$values
+    status[batches[[b]]] <- results[[b]]$status
+  }
+
+  if (!is.null(bands)) values <- values[, bands, drop = FALSE]
+  list(embeddings = values, status = status, lonlat = pts$lonlat)
+}
+
+# Row indices of points in batches of at most `size`, ordered by zone and
+# then by half-degree cell, so that a batch's points share shards. Batches
+# bound the memory of a read, which holds every chunk it needs at once.
+point_batches <- function(lonlat, size) {
+  n <- nrow(lonlat)
+  size <- check_count(size, "geotessera.batch_points")
+  if (n <= size) return(list(seq_len(n)))
+  lon <- lonlat[, 1L]
+  lat <- lonlat[, 2L]
+  ord <- order(floor((lon + 180) / 6), floor(lat * 2), floor(lon * 2))
+  unname(split(ord, ceiling(seq_len(n) / size)))
+}
+
+# Whether the user has set mirai daemons to sample batches in parallel.
+use_mirai <- function() {
+  requireNamespace("mirai", quietly = TRUE) && mirai::daemons_set()
+}
+
+# probe_batch() on a mirai daemon, which opens the store once and reuses it
+# for later batches.
+probe_batch_worker <- function(part, url, cache_dir, crs, year, array,
+                               cross_zone, search_px) {
+  key <- paste(url, cache_dir %||% "", sep = "\n")
+  gt <- worker_stores[[key]]
+  if (is.null(gt)) {
+    gt <- tessera_open(url, cache_dir)
+    assign(key, gt, envir = worker_stores)
+  }
+  probe_batch(gt, part, crs, year, array, cross_zone, search_px)
+}
+
+worker_stores <- new.env(parent = emptyenv())
+
+# Embeddings and statuses of a batch of points, `part$xy` in `crs` with
+# WGS84 coordinates `part$lonlat`.
+probe_batch <- function(gt, part, crs, year, array, cross_zone, search_px) {
+  lon <- part$lonlat[, 1L]
+  lat <- part$lonlat[, 2L]
+  n <- length(lon)
+  values <- matrix(NA_real_, n, array$bands)
   status <- rep(OUTSIDE, n)
   seen_water <- seen_nodata <- rep(FALSE, n)
 
@@ -99,11 +172,11 @@ probe_points <- function(x, points, year, depth, bands, cross_zone, search_px) {
     pending <- which(status != VALID & !is.na(candidates[, pass]))
     for (z in unique(candidates[pending, pass])) {
       sel <- pending[candidates[pending, pass] == z]
-      zone <- zone_open(x, z)
+      zone <- zone_open(gt, z)
       if (is.null(zone)) next
       # Straight from the points' CRS, untouched when it is the zone's.
-      en <- project_xy(pts$xy[sel, 1L], pts$xy[sel, 2L], pts$crs, zone$crs)
-      res <- probe_zone(x, zone, en$x, en$y, year, search_px, array$name, array$bands)
+      en <- project_xy(part$xy[sel, 1L], part$xy[sel, 2L], crs, zone$crs)
+      res <- probe_zone(gt, zone, en$x, en$y, year, search_px, array$name, array$bands)
       hit <- res$status == VALID
       values[sel[hit], ] <- res$values[hit, ]
       status[sel[hit]] <- VALID
@@ -115,8 +188,7 @@ probe_points <- function(x, points, year, depth, bands, cross_zone, search_px) {
   missing <- status != VALID
   status[missing & seen_nodata] <- NODATA
   status[missing & seen_water] <- WATER
-  if (!is.null(bands)) values <- values[, bands, drop = FALSE]
-  list(embeddings = values, status = status, lonlat = pts$lonlat)
+  list(values = values, status = status)
 }
 
 # `points` with the columns of `cols` added, keeping its class where it has

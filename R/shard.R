@@ -159,25 +159,26 @@ fetch_chunks <- function(reader, cc) {
 plan_spans <- function(keys, offset, length, max_gap = 16 * 1024,
                        max_span = 1024^2) {
   ord <- order(keys, offset)
-  key <- character(0)
-  start <- numeric(0)
-  end <- numeric(0)
-  members <- list()
+  n <- length(ord)
+  key <- character(n)
+  start <- end <- numeric(n)
+  span <- integer(n)
+  s <- 0L
   for (i in ord) {
-    s <- length(key)
     if (s && key[s] == keys[i] && offset[i] - end[s] <= max_gap &&
         offset[i] + length[i] - start[s] <= max_span) {
       end[s] <- max(end[s], offset[i] + length[i])
-      members[[s]] <- c(members[[s]], i)
     } else {
-      key <- c(key, keys[i])
-      start <- c(start, offset[i])
-      end <- c(end, offset[i] + length[i])
-      members[[s + 1L]] <- i
+      s <- s + 1L
+      key[s] <- keys[i]
+      start[s] <- offset[i]
+      end[s] <- offset[i] + length[i]
     }
+    span[i] <- s
   }
-  spans <- data.frame(key = key, start = start, end = end)
-  spans$members <- members
+  used <- seq_len(s)
+  spans <- data.frame(key = key[used], start = start[used], end = end[used])
+  spans$members <- unname(split(ord, factor(span[ord], levels = used)))
   spans
 }
 

@@ -35,6 +35,10 @@
 #'   \item{`geotessera.cache_bytes`}{Size bound in bytes of the in-memory
 #'     cache of shard indices and compressed chunks, set when a store is
 #'     opened. The default is 256 MiB.}
+#'   \item{`geotessera.batch_points`}{Maximum points that
+#'     [tessera_sample()] and [tessera_probe()] read at once, bounding
+#'     memory use; batches run in parallel on [mirai](https://mirai.r-lib.org)
+#'     daemons when set. The default is 10000.}
 #' }
 #'
 #' @references Feng Z. et al. (2025). TESSERA: Temporal Embeddings of
