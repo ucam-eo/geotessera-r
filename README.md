@@ -19,7 +19,7 @@ store from `tessera_example()`.
 remotes::install_github("ucam-eo/geotessera-r")
 ```
 
-The package requires R 4.2 or later and uses
+The package requires R 4.4 or later and uses
 [zarr](https://cran.r-project.org/package=zarr) to decode arrays and
 [terra](https://cran.r-project.org/package=terra) for rasters and
 projections.

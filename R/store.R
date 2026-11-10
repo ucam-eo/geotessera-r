@@ -159,7 +159,7 @@ tessera_open <- function(store = tessera_store_url(),
   gt$dataset <- dataset_for_location(url)
   gt$store <- zstore
   gt$consolidated <- consolidated
-  gt$root <- zarr::zarr_group$new("", root_meta, NULL, zstore)
+  gt$root <- zarr::zarr$new(zstore)$root
   gt$attributes <- attrs
   gt$model_version <- attrs[["geoemb:model"]] %||% ""
   gt$build_version <- attrs[["geoemb:build_version"]] %||% ""

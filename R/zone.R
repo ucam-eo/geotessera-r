@@ -24,11 +24,11 @@ zone_open <- function(gt, zone) {
   if (length(transform) != 6L || is.null(code)) {
     abort(sprintf("Zone '%s' lacks spatial:transform or proj:code", path))
   }
-  group <- zarr::zarr_group$new(path, meta, gt$root, gt$store)
+  group <- zarr::zarr_group$new(path, meta, gt$root, no_create_check = TRUE)
 
   scales <- node_metadata(gt, paste0(path, "/scales"))
   time_meta <- node_metadata(gt, paste0(path, "/time"))
-  time <- zarr::zarr_array$new("time", time_meta, group, gt$store)
+  time <- zarr::zarr_array$new("time", time_meta, group, no_create_check = TRUE)
   time$raw_read <- TRUE
 
   z <- new.env(parent = emptyenv())
@@ -84,7 +84,7 @@ zone_reader <- function(gt, zone, name) {
     if (is.null(meta)) {
       abort(sprintf("Array '%s/%s' not in this store", zone$path, name))
     }
-    arr <- zarr::zarr_array$new(name, meta, zone$group, gt$store)
+    arr <- zarr::zarr_array$new(name, meta, zone$group, no_create_check = TRUE)
     reader <- sharded_reader(arr, gt$store, gt$cache)
     assign(name, reader, envir = zone$readers)
   }

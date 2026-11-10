@@ -1,3 +1,8 @@
+# geotessera (development version)
+
+* Requires zarr 1.0.0 or later, and so R 4.4 or later. `tessera_open()`
+  failed with zarr 1.0 (#1).
+
 # geotessera 0.1.0
 
 * Initial release. Reads Tessera embeddings from local and remote Zarr v3
