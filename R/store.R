@@ -234,6 +234,19 @@ embeddings_array <- function(gt, depth) {
   list(name = gt$depths[[key]], bands = as.integer(depth))
 }
 
+# `year` as an integer, which must be one of the store's years.
+check_year <- function(gt, year) {
+  if (!is.numeric(year) || length(year) != 1L || !is.finite(year) ||
+      year != round(year)) {
+    abort("`year` must be a single whole number")
+  }
+  if (!year %in% gt$years) {
+    abort(sprintf("Year %d is unavailable; available: %s", as.integer(year),
+                  paste(gt$years, collapse = ", ")))
+  }
+  as.integer(year)
+}
+
 #' Path of the example store
 #'
 #' The package ships a small synthetic store for examples and tests. It

@@ -80,6 +80,7 @@ tessera_probe <- function(x, points, year, depth = NULL, bands = NULL,
 # Embeddings as a matrix with one row per point, and statuses.
 probe_points <- function(x, points, year, depth, bands, cross_zone, search_px) {
   check_tessera(x)
+  year <- check_year(x, year)
   array <- embeddings_array(x, depth)
   bands <- check_bands(bands, array$bands)
   if (!isTRUE(cross_zone) && !isFALSE(cross_zone)) {

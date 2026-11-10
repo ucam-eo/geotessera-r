@@ -58,6 +58,14 @@ test_that("invalid years and depths are reported", {
   gt <- fixture_store()
   pt <- golden_points(golden())[1, ]
   expect_error(tessera_sample(gt, pt, 2019), "Year 2019 is unavailable; available: 2023, 2024")
+  expect_error(tessera_sample(gt, c(10, 10), 2019), "Year 2019 is unavailable")
+  expect_error(tessera_sample(gt, pt, 2024.5), "`year` must be a single whole number")
+  expect_error(tessera_sample(gt, pt, c(2023, 2024)), "`year` must be a single whole number")
+  bbox <- c(0.004, 52.005, 0.013, 52.009)
+  expect_error(tessera_region(gt, bbox, 2019), "Year 2019 is unavailable")
+  expect_error(tessera_patch(gt, pt, 2019, size_px = 4), "Year 2019 is unavailable")
+  expect_error(tessera_export_geotiffs(gt, bbox, 2019, tempdir(), dry_run = TRUE),
+               "Year 2019 is unavailable")
   expect_error(tessera_sample(gt, pt, 2024, depth = 3), "depth 3 not in this store; available: 2, 4")
 })
 

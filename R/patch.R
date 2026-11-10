@@ -45,6 +45,7 @@
 tessera_patch <- function(x, point, year, size_px, depth = NULL, bands = NULL,
                           dst_crs = NULL, method = "near") {
   check_tessera(x)
+  year <- check_year(x, year)
   pt <- as_points(point)
   if (nrow(pt$xy) != 1L) abort("`point` must be a single point")
   lon <- pt$lonlat[1L, 1L]

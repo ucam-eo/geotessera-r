@@ -44,6 +44,7 @@ tessera_export_geotiffs <- function(x, bbox, year, output_dir, depth = NULL,
                                     compress = c("lzw", "deflate", "zstd", "none"),
                                     progress = NULL, dry_run = FALSE) {
   check_tessera(x)
+  year <- check_year(x, year)
   if (!is.character(output_dir) || length(output_dir) != 1L || is.na(output_dir)) {
     abort("`output_dir` must be a single path")
   }

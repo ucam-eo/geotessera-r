@@ -104,6 +104,7 @@ tessera_map_region <- function(x, bbox, year, FUN, ..., depth = NULL, bands = NU
 
 region_setup <- function(gt, bbox, year, depth, bands) {
   check_tessera(gt)
+  year <- check_year(gt, year)
   bounds <- as_bounds(bbox)
   array <- embeddings_array(gt, depth)
   bands <- check_bands(bands, array$bands)
