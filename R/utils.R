@@ -22,5 +22,3 @@ check_tessera <- function(x) {
     abort("`x` must be a store from tessera_open()")
   }
 }
-
-`%||%` <- function(x, y) if (is.null(x)) y else x
