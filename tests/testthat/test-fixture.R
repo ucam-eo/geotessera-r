@@ -52,6 +52,9 @@ test_that("points outside coverage or non-finite are NA", {
   expect_identical(as.character(res$status), c("outside", "outside"))
   expect_true(all(is.na(band_matrix(res))))
   expect_equal(dim(tessera_sample(gt, matrix(numeric(0), 0, 2), 2024)), c(0L, 6L))
+  expect_error(tessera_sample(gt, data.frame(x = 703500, y = 5766500), 2024),
+               "Points must be WGS84 longitudes and latitudes")
+  expect_error(tessera_sample(gt, c(0, 91), 2024), "WGS84")
 })
 
 test_that("invalid years and depths are reported", {

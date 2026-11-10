@@ -153,5 +153,9 @@ as_lonlat <- function(points) {
   if (!is.numeric(points) || length(dim(points)) != 2L || ncol(points) != 2L) {
     abort("Points must be longitude and latitude pairs")
   }
+  if (any(abs(points[, 1L]) > 180 | abs(points[, 2L]) > 90, na.rm = TRUE)) {
+    abort("Points must be WGS84 longitudes and latitudes; give projected ",
+          "coordinates as an sf or SpatVector layer with their CRS")
+  }
   unname(points)
 }
