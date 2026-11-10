@@ -119,6 +119,7 @@ tessera_open <- function(store = tessera_store_url(),
   url <- sub("/+$", "", store)
   remote <- grepl("^https?://", url)
   if (!grepl("://", url, fixed = TRUE)) url <- normalizePath(url, mustWork = FALSE)
+  if (!is.null(cache_dir)) cache_dir <- normalizePath(cache_dir, mustWork = FALSE)
   store_dir <- if (remote && !is.null(cache_dir)) {
     file.path(cache_dir, store_cache_key(url))
   }

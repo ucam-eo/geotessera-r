@@ -12,8 +12,9 @@ test_that("the store opens with its metadata", {
 
 test_that("local stores are recorded by absolute path", {
   withr::local_dir(dirname(tessera_example()))
-  gt <- tessera_open("example.zarr")
+  gt <- tessera_open("example.zarr", cache_dir = "cache")
   expect_identical(gt$url, normalizePath(tessera_example()))
+  expect_identical(gt$cache_dir, normalizePath("cache", mustWork = FALSE))
 })
 
 test_that("a store without consolidated metadata or zones is an error", {
