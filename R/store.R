@@ -88,7 +88,8 @@ tessera_http_store <- R6::R6Class(
 #' @return A `tessera` object. It is an environment whose fields include:
 #'   \describe{
 #'     \item{`url`}{The store location.}
-#'     \item{`years`}{The embedding years available, as integers.}
+#'     \item{`years`}{The embedding years available, as integers, read from
+#'       the first zone; every zone is assumed to hold the same years.}
 #'     \item{`n_bands`}{The number of bands in the full embedding.}
 #'     \item{`depths`}{The published embedding depths, as the names of a
 #'       character vector.}
@@ -191,6 +192,9 @@ tessera_open <- function(store = tessera_store_url(),
       gt$years <- zone$years
       break
     }
+  }
+  if (!length(gt$years)) {
+    abort(sprintf("No readable UTM zone in the Zarr store at '%s'", url))
   }
   gt
 }

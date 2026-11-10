@@ -25,7 +25,8 @@ is \code{tools::R_user_dir("geotessera", "cache")}.}
 A \code{tessera} object. It is an environment whose fields include:
 \describe{
 \item{\code{url}}{The store location.}
-\item{\code{years}}{The embedding years available, as integers.}
+\item{\code{years}}{The embedding years available, as integers, read from
+the first zone; every zone is assumed to hold the same years.}
 \item{\code{n_bands}}{The number of bands in the full embedding.}
 \item{\code{depths}}{The published embedding depths, as the names of a
 character vector.}

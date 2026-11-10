@@ -35,6 +35,11 @@ test_that("a store without consolidated metadata or zones is an error", {
   zoneless$consolidated_metadata$metadata$other <- list(node_type = "group",
                                                         zarr_format = 3L)
   expect_error(tessera_open(write_store(zoneless)), "No UTM zone groups")
+  unreadable <- root
+  for (z in c("utm30", "utm31")) {
+    unreadable$consolidated_metadata$metadata[[z]]$attributes[["proj:code"]] <- NULL
+  }
+  expect_error(tessera_open(write_store(unreadable)), "No readable UTM zone")
 })
 
 test_that("probe and sample match the Python reader", {
