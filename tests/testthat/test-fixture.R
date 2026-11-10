@@ -445,4 +445,8 @@ test_that("batches run on mirai daemons", {
   unlink(file.path(dir, "example.zarr"), recursive = TRUE)
   expect_error(tessera_sample(gone, golden_points(g), 2024),
                class = "geotessera_error")
+
+  fresh <- tessera_open(tessera_example())
+  withr::local_options(geotessera.cache_bytes = "bad")
+  expect_error(tessera_sample(fresh, golden_points(g), 2024), "max_size must be a number")
 })

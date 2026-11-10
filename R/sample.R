@@ -100,7 +100,8 @@ probe_points <- function(x, points, year, depth, bands, cross_zone, search_px) {
   results <- if (length(parts) > 1L && use_mirai()) {
     m <- mirai::mirai_map(parts, probe_batch_worker, .args = list(
       url = x$url, cache_dir = x$cache_dir, crs = pts$crs, year = year,
-      array = array, cross_zone = cross_zone, search_px = search_px
+      array = array, cross_zone = cross_zone, search_px = search_px,
+      opts = package_options()
     ))
     collect_batches(m)
   } else {
@@ -149,11 +150,19 @@ collect_batches <- function(m) {
   )
 }
 
+# The caller's geotessera options, which daemons do not inherit.
+package_options <- function() {
+  opts <- options()
+  opts[startsWith(names(opts), "geotessera.")]
+}
+
 # probe_batch() on a mirai daemon, which opens the store once and reuses it
-# for later batches.
+# for later batches, under the caller's options.
 probe_batch_worker <- function(part, url, cache_dir, crs, year, array,
-                               cross_zone, search_px) {
-  key <- paste(url, cache_dir %||% "", sep = "\n")
+                               cross_zone, search_px, opts) {
+  old <- options(opts)
+  on.exit(options(old), add = TRUE)
+  key <- digest::digest(list(url, cache_dir, opts))
   gt <- worker_stores[[key]]
   if (is.null(gt)) {
     gt <- tessera_open(url, cache_dir)
