@@ -438,4 +438,11 @@ test_that("batches run on mirai daemons", {
   res <- tessera_probe(gt, golden_points(g), 2024)
   expect_identical(as.character(res$status), g$probe_2024)
   expect_values(band_matrix(res), g$sample_2024)
+
+  dir <- withr::local_tempdir()
+  file.copy(tessera_example(), dir, recursive = TRUE)
+  gone <- tessera_open(file.path(dir, "example.zarr"))
+  unlink(file.path(dir, "example.zarr"), recursive = TRUE)
+  expect_error(tessera_sample(gone, golden_points(g), 2024),
+               class = "geotessera_error")
 })

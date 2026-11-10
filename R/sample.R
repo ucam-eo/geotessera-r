@@ -102,7 +102,7 @@ probe_points <- function(x, points, year, depth, bands, cross_zone, search_px) {
       url = x$url, cache_dir = x$cache_dir, crs = pts$crs, year = year,
       array = array, cross_zone = cross_zone, search_px = search_px
     ))
-    if (interactive()) m[mirai::.progress, mirai::.stop] else m[mirai::.stop]
+    collect_batches(m)
   } else {
     lapply(parts, function(p) {
       probe_batch(x, p, pts$crs, year, array, cross_zone, search_px)
@@ -133,6 +133,20 @@ point_batches <- function(lonlat, size) {
 # Whether the user has set mirai daemons to sample batches in parallel.
 use_mirai <- function() {
   requireNamespace("mirai", quietly = TRUE) && mirai::daemons_set()
+}
+
+# Results of mirai batches. mirai wraps an error raised on a daemon, so the
+# package's own errors are signalled again with their classes.
+collect_batches <- function(m) {
+  tryCatch(
+    if (interactive()) m[mirai::.progress, mirai::.stop] else m[mirai::.stop],
+    error = function(e) {
+      cls <- e$parent$condition.class
+      if (!"geotessera_error" %in% cls) stop(e)
+      stop(errorCondition(e$parent$message, call = NULL,
+                          class = setdiff(cls, c("error", "condition"))))
+    }
+  )
 }
 
 # probe_batch() on a mirai daemon, which opens the store once and reuses it
