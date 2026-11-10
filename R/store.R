@@ -118,6 +118,7 @@ tessera_open <- function(store = tessera_store_url(),
   }
   url <- sub("/+$", "", store)
   remote <- grepl("^https?://", url)
+  if (!grepl("://", url, fixed = TRUE)) url <- normalizePath(url, mustWork = FALSE)
   store_dir <- if (remote && !is.null(cache_dir)) {
     file.path(cache_dir, store_cache_key(url))
   }
@@ -130,7 +131,7 @@ tessera_open <- function(store = tessera_store_url(),
     } else if (grepl("://", url, fixed = TRUE)) {
       abort("Only http(s) URLs and local paths are supported")
     } else {
-      zarr::zarr_localstore$new(path.expand(url), read_only = TRUE)
+      zarr::zarr_localstore$new(url, read_only = TRUE)
     },
     error = function(e) {
       abort(sprintf(

@@ -10,6 +10,12 @@ test_that("the store opens with its metadata", {
   expect_output(print(gt), "Years  : 2023, 2024")
 })
 
+test_that("local stores are recorded by absolute path", {
+  withr::local_dir(dirname(tessera_example()))
+  gt <- tessera_open("example.zarr")
+  expect_identical(gt$url, normalizePath(tessera_example()))
+})
+
 test_that("a store without consolidated metadata or zones is an error", {
   root <- jsonlite::read_json(file.path(tessera_example(), "zarr.json"))
   write_store <- function(meta) {
