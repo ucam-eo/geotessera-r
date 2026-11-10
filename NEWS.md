@@ -6,6 +6,15 @@
 * `tessera_sample()` and `tessera_probe()` read points in batches of nearby
   points (`geotessera.batch_points`, default 10000).
   Batches run in parallel when mirai daemons are set with `mirai::daemons()`.
+* `year` is checked against the store before reading, and must be a single
+  whole number. An unavailable year is an error even when every point lies
+  outside coverage, where it used to return `NA`.
+* Plain coordinates outside WGS84 bounds are an error. Projected
+  coordinates must be given as an `sf` or `SpatVector` layer with their CRS.
+* `tessera_open()` refuses a store with no readable zone, and records local
+  stores and `cache_dir` by absolute path.
+* Errors raised on mirai daemons keep their `geotessera_error` classes, and
+  daemons use the caller's `geotessera.*` options.
 
 # geotessera 0.1.0
 
